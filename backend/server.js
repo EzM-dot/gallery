@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 // Define routes
-let index = require('./routes/index');
-let image = require('./routes/image');
+let index = require('../routes/index.js');
+let image = require('../routes/image.js');
 
 // connecting the database
 let mongodb_url = 'mongodb://localhost:27017/';
