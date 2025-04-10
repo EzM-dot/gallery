@@ -1,0 +1,36 @@
+pipeline{
+    agent any
+    tools {
+        gradle "gradle"
+    }
+    stages{
+        stage("Clone Repository"){
+            steps{
+                git branch:"master", url:"https://github.com/EzM-dot/gallery.git"
+            }
+        }
+        }
+    }
+}
+    stages{
+        stage("Build"){
+            steps{
+                sh "gradle build"
+            }
+        }
+    }
+    stages{
+        stage("Test"){
+            steps{
+                sh "gradle test"
+            }
+        }
+    }
+    stages{
+        stage("Deploy"){
+            steps{
+                sh "gradle deploy"
+            }
+        }
+    }
+}
