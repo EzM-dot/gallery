@@ -17,7 +17,7 @@ mongoose.connect(`${mongodb_url}${dbName}`,{ useNewUrlParser: true , useUnifiedT
 // test if the database has connected successfully
 let db = mongoose.connection;
 db.once('open', ()=>{
-    console.log('Database connected successfully')
+    console.log('MILESTONE 2: Database connected successfully');
 })
 
 // Initializing the app
@@ -40,7 +40,7 @@ app.use('/image', image);
 
 
  
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT,() =>{
     console.log(`Server is listening at http://localhost:${PORT}`)
 });
