@@ -26,7 +26,7 @@ pipeline {
             steps {
                 sh """
                 echo "Deploying to Heroku..."
-                echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
+                echo $heroku | docker login --username=_ --password-stdin registry.heroku.com
                 heroku container:push web --app g-app
                 heroku container:release web --app g-app
                 """
