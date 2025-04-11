@@ -27,8 +27,8 @@ pipeline {
                 sh """
                 echo "Deploying to Heroku..."
                 echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
-                heroku container:push web --app <your-heroku-app-name>
-                heroku container:release web --app <your-heroku-app-name>
+                heroku container:push web --app g-app
+                heroku container:release web --app g-app
                 """
             }
         }
