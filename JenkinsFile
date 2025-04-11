@@ -4,7 +4,7 @@ pipeline {
         gradle "gradle"
     }
     environment {
-        HEROKU_API_KEY = credentials('HEROKU_API_KEY')
+        HEROKU_API_KEY = credentials('heroku')
     }
     stages {
         stage("Clone Repository") {
