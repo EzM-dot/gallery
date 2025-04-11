@@ -1,36 +1,43 @@
-pipeline{
+pipeline {
     agent any
     tools {
         gradle "gradle"
     }
-    stages{
-        stage("Clone Repository"){
-            steps{
-                git branch:"master", url:"https://github.com/EzM-dot/gallery.git"
+    environment {
+        HEROKU_API_KEY = credentials('HEROKU_API_KEY') // Use Jenkins credentials for Heroku API key
+    }
+    stages {
+        stage("Clone Repository") {
+            steps {
+                git branch: "master", url: "https://github.com/EzM-dot/gallery.git"
             }
         }
-        }
-    }
-}
-    stages{
-        stage("Build"){
-            steps{
+        stage("Build") {
+            steps {
                 sh "gradle build"
             }
         }
-    }
-    stages{
-        stage("Test"){
-            steps{
+        stage("Test") {
+            steps {
                 sh "gradle test"
             }
         }
-    }
-    stages{
-        stage("Deploy"){
-            steps{
-                sh "gradle deploy"
+        stage("Deploy to Heroku") {
+            steps {
+                sh """
+                echo "Deploying to Heroku..."
+                echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
+                heroku container:push web --app <your-heroku-app-name>
+                heroku container:release web --app <your-heroku-app-name>
+                """
             }
+        }
+    }
+    post {
+        failure {
+            mail to: 'edwin.mwendwa@student.moringaschool.com',
+                 subject: "Jenkins Pipeline Fail: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                 body: "The Jenkins pipeline '${env.JOB_NAME}' (build #${env.BUILD_NUMBER}) has failed.\n\nCheck the logs for more details: ${env.BUILD_URL}"
         }
     }
 }
