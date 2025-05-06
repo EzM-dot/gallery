@@ -55,6 +55,12 @@ pipeline {
         }
         success {
             echo 'Build succeeded!'
+            // Send Slack notification on success
+            slackSend (
+                channel: '#edwin_ip1',
+                color: 'good',
+                message: "✅ *Deployment Successful*\n*Project:* ${env.JOB_NAME}\n*Build Number:* ${env.BUILD_NUMBER}\n*Status:* ${currentBuild.currentResult}\n*Build URL:* ${env.BUILD_URL}"
+            )
         }
         failure {
             echo 'Build failed!'
@@ -70,6 +76,12 @@ pipeline {
                 to: 'musyokaedwin@gmail.com',
                 recipientProviders: [[$class: 'DevelopersRecipientProvider']],
                 mimeType: 'text/html'
+            )
+            // Send Slack notification on failure
+            slackSend (
+                channel: '#edwin_ip1',
+                color: 'danger',
+                message: "❌ *Deployment Failed*\n*Project:* ${env.JOB_NAME}\n*Build Number:* ${env.BUILD_NUMBER}\n*Status:* ${currentBuild.currentResult}\n*Build URL:* ${env.BUILD_URL}\n*Check the logs for more details*"
             )
         }
     }
