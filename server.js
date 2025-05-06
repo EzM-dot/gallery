@@ -44,11 +44,12 @@ app.use((err, req, res, next) => {
 // Connect to MongoDB
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(_config.mongoURI[process.env.NODE_ENV || 'development'], {
+        const mongoURI = process.env.MONGODB_URI || _config.mongoURI[process.env.NODE_ENV || 'development'];
+        const conn = await mongoose.connect(mongoURI, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        console.log('MongoDB Connected');
     } catch (error) {
         console.error(`Error: ${error.message}`);
         process.exit(1);
