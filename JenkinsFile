@@ -1,188 +1,76 @@
 pipeline {
     agent any
-    
-    // Trigger builds on push to GitHub
-    triggers {
-        githubPush()
-    }
-    
-    // Set build timeout to 10 minutes
-    options {
-        timeout(time: 10, unit: 'MINUTES')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-    
+
     environment {
-        // Node.js configuration
-        NODE_ENV = 'production'
-        NPM_CONFIG_PRODUCTION = 'false'
-        
-        // Render configuration
-        RENDER_API_KEY = credentials('render-api-key')
-        RENDER_SERVICE_ID = 'gallery-app'
+        NODE_VERSION = '18.19.1'
+        NPM_CONFIG_LOGLEVEL = 'warn'
     }
-    
+
     stages {
-        stage("Clone Repository") {
+        stage('Checkout') {
             steps {
-                git branch: "master", url: "https://github.com/EzM-dot/gallery.git"
+                echo 'Checking out source code...'
+                git branch: 'master',
+                    credentialsId: 'github-credentials',
+                    url: 'https://github.com/EzM-dot/gallery.git'
             }
         }
-        
-        stage('Check Dependencies') {
-            steps {
-                script {
-                    // Check for required tools
-                    def requiredTools = [
-                        [name: 'Node.js', cmd: 'node --version', minVersion: '14.0.0'],
-                        [name: 'npm', cmd: 'npm --version', minVersion: '6.0.0'],
-                        [name: 'Docker', cmd: 'docker --version', minVersion: '20.0.0'],
-                        [name: 'MongoDB', cmd: 'mongod --version', minVersion: '4.2.0']
-                    ]
-                    
-                    requiredTools.each { tool ->
-                        try {
-                            // Check if tool exists
-                            def versionOutput = sh(script: "${tool.cmd} 2>&1 || echo 'not_found'", returnStdout: true).trim()
-                            
-                            if (versionOutput == 'not_found') {
-                                error "❌ ${tool.name} is not installed"
-                            }
-                            
-                            // Extract version number
-                            def version = (versionOutput =~ /(\d+\.\d+\.\d+)/)[0][1]
-                            
-                            // Check minimum version
-                            if (compareVersions(version, tool.minVersion) < 0) {
-                                error "❌ ${tool.name} version ${version} is below minimum required version ${tool.minVersion}"
-                            }
-                            
-                            echo "✅ ${tool.name} ${version} is installed (min: ${tool.minVersion})"
-                            
-                        } catch (Exception e) {
-                            error "❌ ${tool.name} check failed: ${e.message}"
-                        }
-                    }
-                }
-            }
-        }
-        
+
         stage('Install Dependencies') {
             steps {
-                script {
-                    try {
-                        // Clean npm cache
-                        sh 'npm cache clean --force'
-                        
-                        // Install npm dependencies
-                        sh 'npm install --no-package-lock'
-                        
-                        // If there's a package-lock.json, do a clean install
-                        if (fileExists('package-lock.json')) {
-                            sh 'npm ci --only=prod'
-                        }
-                        
-                        // Check for vulnerabilities
-                        def auditResult = sh(
-                            script: 'npm audit --json || true',
-                            returnStdout: true
-                        )
-                        
-                        def auditJson = readJSON text: auditResult
-                        if (auditJson.vulnerabilities?.high || auditJson.vulnerabilities?.critical) {
-                            echo '⚠️  WARNING: High or critical vulnerabilities found. Consider running npm audit fix.'
-                        }
-                        
-                        echo '✅ Dependencies installed successfully'
-                        
-                    } catch (Exception e) {
-                        error "❌ Failed to install dependencies: ${e.message}"
-                    }
-                }
+                echo 'Installing Node.js...'
+                sh 'nvm install ${NODE_VERSION}'
+                sh 'nvm use ${NODE_VERSION}'
+                
+                echo 'Installing dependencies...'
+                sh 'npm install'
             }
         }
-        
-        // Helper function to compare version numbers
-        def compareVersions(String v1, String v2) {
-            def parts1 = v1.tokenize('.').collect { it as int }
-            def parts2 = v2.tokenize('.').collect { it as int }
-            
-            for (int i = 0; i < Math.max(parts1.size(), parts2.size()); i++) {
-                def p1 = i < parts1.size() ? parts1[i] : 0
-                def p2 = i < parts2.size() ? parts2[i] : 0
-                if (p1 != p2) {
-                    return p1 <=> p2
-                }
-            }
-            return 0
-        }
-        
-        stage("Build") {
+
+        stage('Run Tests') {
             steps {
-                sh "gradle build"
+                echo 'Running tests...'
+                sh 'npm test'
             }
         }
-        
-        stage("Test") {
-            steps {
-                sh "gradle test"
+
+        stage('Deploy') {
+            when {
+                branch 'master'
             }
-        }
-        
-        stage('Deploy to Render') {
             steps {
-                script {
-                    try {
-                        // Install Render CLI if not already installed
-                        sh '''
-                        if ! command -v render &> /dev/null; then
-                            echo "Installing Render CLI..."
-                            curl -fsSL https://cli.render.com/install.sh | bash
-                        fi
-                        
-                        # Login to Render
-                        echo "Logging in to Render..."
-                        render login --api-key $RENDER_API_KEY
-                        
-                        # Deploy using Render CLI
-                        echo "Deploying to Render..."
-                        render services create --file render.yaml --yes
-                        
-                        # Get service URL
-                        def serviceInfo = sh(script: 'render services get $RENDER_SERVICE_ID --json', returnStdout: true).trim()
-                        def serviceJson = readJSON text: serviceInfo
-                        def serviceUrl = serviceJson.service.serviceDetails.url
-                        
-                        echo "✅ Deployment successful!"
-                        echo "🌐 Application URL: https://${serviceUrl}"
-                        
-                        // Update build description with deployment URL
-                        currentBuild.description = "Deployed to Render: ${serviceUrl}"
-                        
-                    } catch (Exception e) {
-                        error "❌ Deployment failed: ${e.message}"
-                    }
-                }
+                echo 'Deploying application...'
+                // Add your deployment steps here
+                // For example: sh 'npm run deploy'
             }
         }
     }
+
+
     post {
+        always {
+            echo 'Build process completed.'
+            // Clean up after build
+            cleanWs()
+        }
         success {
-            echo '✅ Pipeline completed successfully!'
-            // Optional: Add success notification
-            // mail to: 'edwin.mwendwa@student.moringaschool.com',
-            //      subject: "✅ Pipeline Success: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-            //      body: "The Jenkins pipeline '${env.JOB_NAME}' completed successfully!\n\nBuild details: ${env.BUILD_URL}"
+            echo 'Build succeeded!'
         }
         failure {
-            echo '❌ Pipeline failed!'
-            mail to: 'edwin.mwendwa@student.moringaschool.com',
-                 subject: "❌ Pipeline Failed: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                 body: "The Jenkins pipeline '${env.JOB_NAME}' (build #${env.BUILD_NUMBER}) has failed.\n\nCheck the logs for more details: ${env.BUILD_URL}\n\nBuild Status: ${currentBuild.currentResult}\n\n${currentBuild.getBuildCauses()}"
-        }
-        always {
-            // Clean up workspace
-            cleanWs()
+            echo 'Build failed!'
+            // Send email notification on failure
+            emailext (
+                subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                <p>Check console output at <a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>
+                <p>Failed stage: ${currentBuild.currentResult}</p>
+                <p>Check console output at <a href='${env.BUILD_URL}console'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>
+                <p>Change: ${CHANGES, showPaths=true, format="%a: %r %p \\n"}</p>
+                """,
+                to: 'musyokaedwin@gmail.com',
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                mimeType: 'text/html'
+            )
         }
     }
 }
