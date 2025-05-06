@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: gallery-app
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromDatabase:
+          name: gallery-db
+          property: connectionString
+    plan: free
+
+databases:
+  - name: gallery-db
+    databaseName: gallery
+    user: gallery_user
+    plan: free

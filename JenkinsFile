@@ -13,15 +13,13 @@ pipeline {
     }
     
     environment {
-        // Heroku configuration
-        HEROKU_APP_NAME = 'g-app'
-        
         // Node.js configuration
         NODE_ENV = 'production'
         NPM_CONFIG_PRODUCTION = 'false'
         
-        // Load Heroku API key from Jenkins credentials
-        HEROKU_API_KEY = credentials('heroku')
+        // Render configuration
+        RENDER_API_KEY = credentials('render-api-key')
+        RENDER_SERVICE_ID = 'gallery-app'
     }
     
     stages {
@@ -131,14 +129,40 @@ pipeline {
             }
         }
         
-        stage("Deploy to Heroku") {
+        stage('Deploy to Render') {
             steps {
-                sh """
-                echo "Deploying to Heroku..."
-                echo $heroku | docker login --username=_ --password-stdin registry.heroku.com
-                heroku container:push web --app g-app
-                heroku container:release web --app g-app
-                """
+                script {
+                    try {
+                        // Install Render CLI if not already installed
+                        sh '''
+                        if ! command -v render &> /dev/null; then
+                            echo "Installing Render CLI..."
+                            curl -fsSL https://cli.render.com/install.sh | bash
+                        fi
+                        
+                        # Login to Render
+                        echo "Logging in to Render..."
+                        render login --api-key $RENDER_API_KEY
+                        
+                        # Deploy using Render CLI
+                        echo "Deploying to Render..."
+                        render services create --file render.yaml --yes
+                        
+                        # Get service URL
+                        def serviceInfo = sh(script: 'render services get $RENDER_SERVICE_ID --json', returnStdout: true).trim()
+                        def serviceJson = readJSON text: serviceInfo
+                        def serviceUrl = serviceJson.service.serviceDetails.url
+                        
+                        echo "✅ Deployment successful!"
+                        echo "🌐 Application URL: https://${serviceUrl}"
+                        
+                        // Update build description with deployment URL
+                        currentBuild.description = "Deployed to Render: ${serviceUrl}"
+                        
+                    } catch (Exception e) {
+                        error "❌ Deployment failed: ${e.message}"
+                    }
+                }
             }
         }
     }
