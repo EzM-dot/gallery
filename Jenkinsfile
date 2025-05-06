@@ -69,9 +69,9 @@ pipeline {
                 <p>Check console output at <a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>
                 <p>Failed stage: ${currentBuild.currentResult}</p>
                 <p>Check console output at <a href='${env.BUILD_URL}console'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>
-                <p>Change: ${CHANGES, showPaths=true, format="%a: %r %p \n"}</p>
+                <p>Change: ${CHANGES, showPaths=true, format="%a: %r %p \\n"}</p>
                 """,
-                to: 'edwinmwendwa@gmail.com',
+                to: 'musyokaedwin@gmail.com',
                 recipientProviders: [[$class: 'DevelopersRecipientProvider']],
                 mimeType: 'text/html'
             )
