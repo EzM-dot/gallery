@@ -1,53 +1,67 @@
 pipeline {
     agent any
+    
+    tools {
+        nodejs 'nodejs'  // This should match the Node.js installation in Jenkins
+    }
 
     environment {
-        NODE_VERSION = '18.19.1'
-        NPM_CONFIG_LOGLEVEL = 'warn'
-        RENDER_URL = 'https://gallery-app.onrender.com' // Update this with your actual Render URL
+        NODE_ENV = 'production'
+        RENDER_URL = 'https://gallery-app-4vz1.onrender.com'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
-                git branch: 'master',
-                    credentialsId: 'github-credentials',
-                    url: 'https://github.com/EzM-dot/gallery.git'
+                git branch: 'master', url: 'https://github.com/EzM-dot/gallery.git'
             }
         }
-
+        
         stage('Install Dependencies') {
             steps {
-                echo 'Installing Node.js...'
-                sh 'nvm install ${NODE_VERSION}'
-                sh 'nvm use ${NODE_VERSION}'
-                
                 echo 'Installing dependencies...'
                 sh 'npm install'
             }
         }
-
-        stage('Run Tests') {
+        
+        stage('Test') {
             steps {
                 echo 'Running tests...'
                 sh 'npm test'
             }
         }
-
+        
+        stage('Build') {
+            steps {
+                echo 'Building application...'
+                sh 'npm run build'
+            }
+        }
+        
         stage('Deploy') {
             when {
                 branch 'master'
             }
             steps {
                 echo 'Deploying application...'
-                // Add your deployment steps here
-                // For example: sh 'npm run deploy'
+                // The actual deployment will be handled by Render's webhook
+                // This step is a placeholder for any additional deployment steps
+                echo 'Deployment triggered via Render webhook'
+                
+                // Optional: Add a step to verify the deployment
+                script {
+                    def response = httpRequest url: "${env.RENDER_URL}/health"
+                    if (response.status == 200) {
+                        echo 'Deployment verified successfully!'
+                    } else {
+                        error "Deployment verification failed: ${response.status}"
+                    }
+                }
             }
         }
     }
-
-
+    
     post {
         always {
             echo 'Build process completed.'
