@@ -60,7 +60,7 @@ pipeline {
             slackSend (
                 channel: '#edwin_ip1',
                 color: 'good',
-                message: """✅ *Deployment Successful*
+                message: """*Deployment Successful*
 *Project:* ${env.JOB_NAME}
 *Build ID:* ${env.BUILD_ID}
 *Build Number:* ${env.BUILD_NUMBER}
@@ -88,7 +88,7 @@ pipeline {
             slackSend (
                 channel: '#edwin_ip1',
                 color: 'danger',
-                message: """❌ *Deployment Failed*
+                message: """*Deployment Failed*
 *Project:* ${env.JOB_NAME}
 *Build ID:* ${env.BUILD_ID}
 *Build Number:* ${env.BUILD_NUMBER}
