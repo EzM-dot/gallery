@@ -1,21 +1,27 @@
-const express = require('express');
-const router = express.Router();
-const uuid = require('uuid');
-let upload = require('./upload');
-const url = require('url')
-let Image = require('../models/images');
+import { Router } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import upload from './upload.js';
+import Image from '../models/images.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const router = Router();
 
 
-var db = []
 
-router.get('/', (req,res)=>{
-    
-    Image.find({}, function(err, images){
-        // console.log(images)
-        if (err) console.log(err);
-        res.render('index',{images:images, msg: req.query.msg })
-    })
-})
+
+router.get('/', async (req, res, next) => {
+    try {
+        const images = await Image.find({});
+        res.render('index', { 
+            images: images || [], 
+            msg: req.query.msg 
+        });
+    } catch (err) {
+        console.error('Error fetching images:', err);
+        next(err);
+    }
+});
 
 router.post('/upload', (req, res)=>{
     upload(req,res, (err)=>{
@@ -52,4 +58,4 @@ router.post('/upload', (req, res)=>{
     })
 })
 
-module.exports = router;
+export default router;
