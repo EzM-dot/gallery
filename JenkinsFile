@@ -4,6 +4,7 @@ pipeline {
     environment {
         NODE_VERSION = '18.19.1'
         NPM_CONFIG_LOGLEVEL = 'warn'
+        RENDER_URL = 'https://gallery-app.onrender.com' // Update this with your actual Render URL
     }
 
     stages {
@@ -59,7 +60,13 @@ pipeline {
             slackSend (
                 channel: '#edwin_ip1',
                 color: 'good',
-                message: "✅ *Deployment Successful*\n*Project:* ${env.JOB_NAME}\n*Build Number:* ${env.BUILD_NUMBER}\n*Status:* ${currentBuild.currentResult}\n*Build URL:* ${env.BUILD_URL}"
+                message: """✅ *Deployment Successful*
+*Project:* ${env.JOB_NAME}
+*Build ID:* ${env.BUILD_ID}
+*Build Number:* ${env.BUILD_NUMBER}
+*Status:* ${currentBuild.currentResult}
+*Build URL:* ${env.BUILD_URL}
+*Live Site:* ${env.RENDER_URL}"""
             )
         }
         failure {
@@ -81,7 +88,14 @@ pipeline {
             slackSend (
                 channel: '#edwin_ip1',
                 color: 'danger',
-                message: "❌ *Deployment Failed*\n*Project:* ${env.JOB_NAME}\n*Build Number:* ${env.BUILD_NUMBER}\n*Status:* ${currentBuild.currentResult}\n*Build URL:* ${env.BUILD_URL}\n*Check the logs for more details*"
+                message: """❌ *Deployment Failed*
+*Project:* ${env.JOB_NAME}
+*Build ID:* ${env.BUILD_ID}
+*Build Number:* ${env.BUILD_NUMBER}
+*Status:* ${currentBuild.currentResult}
+*Build URL:* ${env.BUILD_URL}
+*Live Site:* ${env.RENDER_URL}
+*Check the logs for more details*"""
             )
         }
     }
