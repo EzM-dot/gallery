@@ -2,9 +2,10 @@
   "name": "dark-room",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "mocha --exit"
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx mocha --exit"
   },
   "keywords": [],
   "author": "",
@@ -19,9 +20,10 @@
     "uuid": "^8.1.0"
   },
   "devDependencies": {
-    "chai": "^3.2.0",
-    "chai-http": "^5.1.1",
-    "mocha": "^8.1.1"
+    "chai": "^3.5.0",
+    "chai-http": "^5.1.2",
+    "mocha": "^8.4.0",
+    "supertest": "^7.1.0"
   },
   "engines": {
     "node": ">=18.19.0"

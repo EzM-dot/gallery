@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        main {
+            flex: 1 0 auto;
+            padding: 20px 0;
+        }
+        .error-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m8 offset-m2">
+                    <div class="card">
+                        <div class="card-content">
+                            <h1 class="red-text">Error <%= status || 500 %></h1>
+                            <h5>Oops! Something went wrong.</h5>
+                            <% if (process.env.NODE_ENV === 'development') { %>
+                                <pre><%= message %></pre>
+                                <pre><%= error.stack %></pre>
+                            <% } else { %>
+                                <p>We're sorry, but something went wrong. Please try again later.</p>
+                            <% } %>
+                        </div>
+                        <div class="card-action">
+                            <a href="/" class="btn waves-effect waves-light">Return Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="page-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <p class="center-align">© <%= new Date().getFullYear() %> Gallery App</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+</html>

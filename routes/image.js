@@ -1,6 +1,7 @@
-const express = require('express');
-const router = express.Router();
-let Image = require('../models/images');
+import { Router } from 'express';
+import Image from '../models/images.js';
+
+const router = Router();
 
 router.get('/:id', (req,res)=>{
     // console.log(req);
@@ -33,4 +34,4 @@ router.delete('/:id', (req,res) =>{
     })
 })
 
-module.exports = router
+export default router;
