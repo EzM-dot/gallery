@@ -45,8 +45,6 @@ pipeline {
             }
             steps {
                 echo 'Deploying application...'
-                // The actual deployment will be handled by Render's webhook
-                // This step is a placeholder for any additional deployment steps
                 echo 'Deployment triggered via Render webhook'
                 
                 // Optional: Add a step to verify the deployment
@@ -65,7 +63,6 @@ pipeline {
     post {
         always {
             echo 'Build process completed.'
-            // Clean up after build
             cleanWs()
         }
         success {
